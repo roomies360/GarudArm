@@ -1,3 +1,21 @@
+const connectingText = document.getElementById("connectContainer");
+
+function startConnectingAnimation() {
+    connectingText.style.display = "flex";
+}
+
+function stopConnectingAnimation() {
+    connectingText.style.display = "none";
+}
+
+startConnectingAnimation();
+setTimeout(() => {
+    stopConnectingAnimation();
+    document.getElementById('landing-page').style.display = 'none';
+}, 9000);
+
+
+
 const radarCenter = document.querySelector(".radar-center");
 const radarWaves = document.querySelectorAll(".radar-wave");
 
@@ -11,7 +29,16 @@ function setRadarDisconnected(state) {
     }
 }
 
+function disableButton(btn) {
+    btn.classList.add("button-disabled");
+}
+function enableButton(btn) {
+    btn.classList.remove("button-disabled");
+}
+
 let ws;
+const refreshBtn = document.getElementById("refresh");
+const caliberateBtn = document.getElementById("caliberate");
 function connectWebSocket() {
     if (ws && ws.readyState !== WebSocket.CLOSED) {
         ws.close();
@@ -19,9 +46,18 @@ function connectWebSocket() {
     ws = new WebSocket("ws://esp32.local:81/");
     ws.onopen = () => {
         console.log("WebSocket connected");
+        refreshBtn.classList.remove("button-disabled");
+        refreshBtn.classList.remove("spin");
         setRadarDisconnected(false);
     };
-
+    ws.onmessage = (evt) => {
+        console.log("WS message:", evt.data);
+        if (evt.data.includes("caliberation success")) {
+            caliberateBtn.classList.remove("button-disabled");
+            caliberateBtn.style.backgroundColor = "#191919";
+            caliberateBtn.style.color = "#444444";
+        }
+    };
     ws.onclose = () => {
         console.log("WebSocket closed");
         setRadarDisconnected(true);
@@ -34,14 +70,22 @@ function connectWebSocket() {
 }
 connectWebSocket();  // initialize on page load
 
-const refreshBtn = document.getElementById("refresh");
+// Refresh Button
 refreshBtn.addEventListener("click", () => {
+    if (refreshBtn.classList.contains("button-disabled")) return; // prevent click if disabled
     refreshBtn.classList.add("spin");
+    disableButton(refreshBtn);
     connectWebSocket();
-    setTimeout(() => {
-        refreshBtn.classList.remove("spin");
-    }, 1500);
 });
+// Calibrate button
+caliberateBtn.addEventListener("click", () => {
+    if (caliberateBtn.classList.contains("button-disabled")) return;
+    disableButton(caliberateBtn, 2000);
+    caliberateBtn.style.backgroundColor = "#80b7ee";
+    caliberateBtn.style.color = "#fff";
+    sendWSMessage("CALIBRATE", "");
+});
+
 
 // ----------------- WebSocket Message Sender -----------------
 function sendWSMessage(type, value) {
