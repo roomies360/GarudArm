@@ -43,7 +43,7 @@ function connectWebSocket() {
     if (ws && ws.readyState !== WebSocket.CLOSED) {
         ws.close();
     }
-    ws = new WebSocket("ws://esp32.local:81/");
+    ws = new WebSocket(`ws://${window.location.hostname}:81/`);
     ws.onopen = () => {
         console.log("WebSocket connected");
         refreshBtn.classList.remove("button-disabled");
@@ -203,3 +203,4 @@ placeBtn.addEventListener("click", () => {
     holdBtn.classList.remove("active");
     sendWSMessage("GRIPPER", `${ch}:PLACE`);
 });
+
