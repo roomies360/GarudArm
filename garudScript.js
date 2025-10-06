@@ -139,7 +139,7 @@ const connectingText = document.getElementById("connectContainer");
             lastRightPWM = rightPWM;
 
             console.log(`MOVE -> Left: ${leftPWM}, Right: ${rightPWM}`);
-            // ws.send(`MOTOR:${leftPWM},${rightPWM}`);
+            ws.send(`MOTOR:${leftPWM},${rightPWM}`);
         }
 
         function stopMove() {
@@ -212,7 +212,7 @@ const connectingText = document.getElementById("connectContainer");
             function sendAngle() {
                 const angle = mapSliderToAngle(sliderObj.element.value);
                 console.log(`Sent -> SERVO:${sliderObj.channel}:${angle}`);
-                // ws.send(`SERVO:${sliderObj.channel}:${angle}`); // Uncomment to send to ESP
+                ws.send(`SERVO:${sliderObj.channel}:${angle}`); // Uncomment to send to ESP
             }
 
             function startSending() {
@@ -250,5 +250,6 @@ const connectingText = document.getElementById("connectContainer");
             holdBtn.classList.remove("active");
             sendWSMessage("GRIPPER", `${ch}:PLACE`);
         });
+
 
 
