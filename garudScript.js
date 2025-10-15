@@ -1,4 +1,6 @@
 // ---------------------- Sliders ----------------------
+const servoState = {}; // channel -> angle e.g. { "1": 90, "2": 45 }
+
 const sliders = [
     { element: document.getElementById('base'), channel: 0 },
     { element: document.getElementById('universal-slider'), channel: 1 },
@@ -56,7 +58,19 @@ servoButtons.forEach(btn => {
     });
 });
 
-
+// --- Servo state store ---
+function setServoAngle(channel, angle) {
+    servoState[String(channel)] = Number(angle);
+    // update display if current selected channel matches
+    if (sliders[1].channel == channel || sliders[0].channel == channel) {
+        display.textContent = `${servoState[String(channel)]}°`;
+    }
+    // If the UI has a selected servo button highlight, reflect its angle
+    const btn = Array.from(servoButtons).find(b => b.dataset.channel === String(channel));
+    if (btn && btn.classList.contains('selected-servo')) {
+        display.textContent = `${servoState[String(channel)]}°`;
+    }
+}
 
 
 const connectingText = document.getElementById("connectContainer");
@@ -73,7 +87,7 @@ startConnectingAnimation();
 setTimeout(() => {
     stopConnectingAnimation();
     document.getElementById('landing-page').style.display = 'none';
-}, 9000);
+}, 1);
 
 
 const radarCenter = document.querySelector(".radar-center");
@@ -112,10 +126,26 @@ function connectWebSocket() {
     };
     ws.onmessage = (evt) => {
         console.log("WS message:", evt.data);
-        if (evt.data.includes("caliberation success")) {
+        const msg = evt.data.toLowerCase();
+        if (msg.startsWith("SERVO:")) {
+            const parts = msg.split(':');
+            if (parts.length >= 3) {
+                const ch = parts[1].trim();
+                const ang = parts[2].trim();
+                setServoAngle(ch, ang);
+                return;
+            }
+        } else if (msg.includes("caliberation success")) {
             caliberateBtn.classList.remove("button-disabled");
             caliberateBtn.style.backgroundColor = "#191919";
             caliberateBtn.style.color = "#444444";
+        } else if (msg.startsWith("ANGLES:")) {
+            const payload = msg.slice(7);
+            payload.split(',').forEach(pair => {
+                const [ch, ang] = pair.split('=').map(s => s && s.trim());
+                if (ch && ang !== undefined) setServoAngle(ch, ang);
+            });
+            return;
         }
     };
     ws.onclose = () => {
@@ -146,6 +176,11 @@ caliberateBtn.addEventListener("click", () => {
     sendWSMessage("CALIBRATE", "");
 });
 
+// Home button
+const homeBtn = document.getElementById("home-btn");
+homeBtn.addEventListener("click", () => {
+    sendWSMessage("HOME", "");
+});
 
 // ----------------- WebSocket Message Sender -----------------
 function sendWSMessage(type, value) {
