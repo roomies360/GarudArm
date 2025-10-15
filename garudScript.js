@@ -6,7 +6,7 @@
             if (ws && ws.readyState !== WebSocket.CLOSED) {
                 ws.close();
             }
-            ws = new WebSocket(`ws://${window.location.host}:81/`);
+            ws = new WebSocket(`ws://${window.location.host}/`);
             ws.onopen = () => {
                 console.log("WebSocket connected");
                 refreshBtn.classList.remove("button-disabled");
@@ -16,7 +16,7 @@
             ws.onmessage = (evt) => {
                 console.log("WS message:", evt.data);
                 const msg = evt.data.toLowerCase();
-                if (msg.startsWith("SERVO:")) {
+                /* if (msg.startsWith("SERVO:")) {
                     const parts = msg.split(':');
                     if (parts.length >= 3) {
                         const ch = parts[1].trim();
@@ -24,11 +24,12 @@
                         setServoAngle(ch, ang);
                         return;
                     }
-                } else if (msg.includes("caliberation success")) {
+                } */
+                if (msg.includes("caliberation success")) {
                     caliberateBtn.classList.remove("button-disabled");
                     caliberateBtn.style.backgroundColor = "#191919";
                     caliberateBtn.style.color = "#444444";
-                } else if (msg.startsWith("ANGLES:")) {
+                } /* else if (msg.startsWith("ANGLES:")) {
                     const payload = msg.slice(7);
                     payload.split(',').forEach(pair => {
                         const [ch, ang] = pair.split('=').map(s => s && s.trim());
@@ -36,6 +37,8 @@
                     });
                     return;
                 }
+                    */
+
             };
             ws.onclose = () => {
                 console.log("WebSocket closed");
@@ -111,7 +114,7 @@
         });
 
         // --- Servo state store ---
-        function setServoAngle(channel, angle) {
+        /*function setServoAngle(channel, angle) {
             servoState[String(channel)] = Number(angle);
             // update display if current selected channel matches
             if (sliders[1].channel == channel || sliders[0].channel == channel) {
@@ -123,7 +126,7 @@
                 display.textContent = `${servoState[String(channel)]}°`;
             }
         }
-
+        */
 
         const connectingText = document.getElementById("connectContainer");
 
@@ -287,7 +290,7 @@
         // Gripper buttons
         const holdBtn = document.getElementById("hold-btn");
         const placeBtn = document.getElementById("place-btn");
-        const ch = 5;
+        const ch = 6;
         holdBtn.addEventListener("click", () => {
             holdBtn.classList.add("active");
             placeBtn.classList.remove("active");
@@ -299,4 +302,3 @@
             holdBtn.classList.remove("active");
             sendWSMessage("GRIPPER", `${ch}:PLACE`);
         });
-
