@@ -187,6 +187,34 @@
             sendWSMessage("HOME", "");
         });
 
+        // --- Editable servo angle send ---
+        const servoAngleSpan = document.getElementById("servo-angle");
+        servoAngleSpan.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault(); // prevent newline
+                const raw = servoAngleSpan.textContent.trim();
+                const angle = parseInt(raw, 10);
+
+                if (!isNaN(angle) && angle >= 0 && angle <= 160) {
+                    const channel = sliders[1].channel; // current selected servo channel
+                    const msg = `SETMOTOR:${channel}:${angle}`;
+                    console.log("Sent ->", msg);
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(msg);
+                    } else {
+                        console.warn("WebSocket not connected");
+                    }
+                } else {
+                    console.warn("Invalid angle:", raw);
+                }
+
+                // remove focus after enter
+                servoAngleSpan.blur();
+            }
+        });
+
+
+
         // ----------------- WebSocket Message Sender -----------------
         function sendWSMessage(type, value) {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -302,4 +330,5 @@
             holdBtn.classList.remove("active");
             sendWSMessage("GRIPPER", `${ch}:PLACE`);
         });
+
 
