@@ -150,6 +150,11 @@
             justify-content: center;
         }
 
+.display .servo-angle {
+            outline: none;
+            margin-right: 2px;
+        }
+
         .home-btn {
             position: relative;
             top: 12px;
@@ -451,3 +456,4 @@
             transform: rotate(-90deg);
             width: 150%;
         }
+
